@@ -215,7 +215,6 @@ if __name__ == "__main__":
     #後々print出力部分をMLAに送信するメソッドにする
     print('============')
 
-
     dataCheck = 0
     if len(posLeftList) < 1 :
         print("Average PosLeft: no valid data")
