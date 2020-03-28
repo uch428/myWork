@@ -215,31 +215,30 @@ if __name__ == "__main__":
     #後々print出力部分をMLAに送信するメソッドにする
     print('============')
 
-    #if len(posLeftList)<1 || len(posCenterList)<1 || len(posRightList)<1:
 
     dataCheck = 0
     if len(posLeftList) < 1 :
-        print("posLeftList: no valid data")
-        datacheck = 1
+        print("Average PosLeft: no valid data")
+        dataCheck = 1
     else:
         avePosLeft = sum(posLeftList) / len(posLeftList)
         print('Average PosLeft: ',avePosLeft)
 
     if len(posCenterList) < 1 :
-        print("posCenterList: no valid data")
-        datacheck = 1
+        print("Average PosCenter: no valid data")
+        dataCheck = 1
     else:
         avePosCenter = sum(posCenterList) / len(posCenterList)
         print('Average PosCenter: ',avePosCenter)
 
     if len(posRightList) < 1 :
-        print("posRightList: no valid data")
-        datacheck = 1
+        print("Average PosRight: no valid data")
+        dataCheck = 1
     else:
         avePosRight = sum(posRightList) / len(posRightList)
         print('Average PosRight: ',avePosRight)
 
-    if datacheck == 0:
+    if dataCheck == 0:
         outputData(avePosLeft, avePosCenter, avePosRight)
-    elif:
-        print("data not completed")
+    else:
+        print("Data not completed")
