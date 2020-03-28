@@ -75,9 +75,21 @@ class _GetchUnix:
 
 #def waitInput:
 
-def outputData(leftAvg, centerAvg, rightAvg):
+def outputData(listLeft, listCenter, listRight): #worked on March 28th
     print("data will be output to csv file here ?")
 
+    print('listLeft::', listLeft)
+    print('listCenter:: ', listCenter)
+    print('listRight:: ', listRight)
+    npaLeft = np.array(listLeft)
+    npaCenter = np.array(listCenter)
+    npaRight = np.array(listRight)
+
+#    dataArray = np.array(listLeft)
+    dataArray = np.concatenate([npaLeft, npaCenter, npaRight])
+
+    print('----dataArray----')
+    print(dataArray)
 
 def calcParameters():
     print("parameters to convert pos data will be calculated here")
@@ -123,13 +135,16 @@ if __name__ == "__main__":
     t1 = time.time()
     time_chunk = 0
 
-    ctrA = 0;
-    posLeftList = []
-    ctrB = 0;
-    posCenterList = []
-    ctrC = 0;
-    posRightList = []
-    confThr = 0.0
+    posLeftList = [[]]
+    posCenterList = [[]]
+    posRightList = [[]]
+    posLeftList.clear()
+    posCenterList.clear()
+    posRightList.clear()
+
+    confThr = 0.0 # confidence threshold. 0.6?
+
+    edgeDegree = 25.0 # the degree of left/right edge of the used display
 
     while True:
         # 操作説明
@@ -171,25 +186,18 @@ if __name__ == "__main__":
 
             if x == 'a':
                 if confidence >= confThr:
-                    posLeftList.append(nPosX)
-                    ctrA += 1
-                    #print(posLeftList)
-                #if ctrA > 10:
-                #    break
+                    a = [edgeDegree*(-1), nPosX]
+                    posLeftList.append(a)
+
             elif x == 's':
                 if confidence >= confThr:
-                    posCenterList.append(nPosX)
-                    ctrB += 1
-                #    print(posCenterList)
-                #if ctrB > 10:
-                #    break
+                    a = [0., nPosX]
+                    posCenterList.append(a)
+
             elif x == 'd':
                 if confidence >= confThr:
-                    posRightList.append(nPosX)
-                    ctrC += 1
-                    #print(posRightList)
-                #if ctrC > 10:
-                #    break
+                    a = [edgeDegree, nPosX]
+                    posRightList.append(a)
 
             elif x == 'q':
                 posLeftList.clear()
@@ -214,30 +222,40 @@ if __name__ == "__main__":
 
     #後々print出力部分をMLAに送信するメソッドにする
     print('==average data==')
+    print('len(posLeftList): ',len(posLeftList))
 
     dataCheck = 0
     if len(posLeftList) < 1 :
-        print("Average PosLeft: no valid data")
+        print("Average PosLeft: No valid data")
         dataCheck = 1
     else:
-        avePosLeft = sum(posLeftList) / len(posLeftList)
-        print('Average PosLeft: ',avePosLeft)
+        b = []
+        for i in posLeftList: # リストの各要素の二番目のデータだけをSum up
+            b.append(i[1])
+        #avePosLeft = sum(posLeftList) / len(posLeftList)
+        print('Average PosLeft: ', sum(b)/len(b))
 
     if len(posCenterList) < 1 :
-        print("Average PosCenter: no valid data")
+        print("Average PosCenter: No valid data")
         dataCheck = 1
     else:
-        avePosCenter = sum(posCenterList) / len(posCenterList)
-        print('Average PosCenter: ',avePosCenter)
+        #avePosCenter = sum(posCenterList) / len(posCenterList)
+        b = []
+        for i in posCenterList:
+            b.append(i[1])
+        print('Average PosCenter: ', sum(b)/len(b))
 
     if len(posRightList) < 1 :
-        print("Average PosRight: no valid data")
+        print("Average PosRight: No valid data")
         dataCheck = 1
     else:
-        avePosRight = sum(posRightList) / len(posRightList)
-        print('Average PosRight: ',avePosRight)
+        #avePosRight = sum(posRightList) / len(posRightList)
+        b = []
+        for i in posRightList:
+            b.append(i[1])
+        print('Average PosRight: ', sum(b)/len(b))
 
     if dataCheck == 0:
-        outputData(avePosLeft, avePosCenter, avePosRight)
+        outputData(posLeftList, posCenterList, posRightList)
     else:
         print("Data not completed")
