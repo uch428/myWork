@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
 
+from sklearn.linear_model import LinearRegression
+
 class RealTimeReceive():
     def print_receiveRate(self, sw, uFrame, e_time, czero, cmore):
         if(sw):
@@ -74,30 +76,84 @@ class _GetchUnix:
 
 
 #def waitInput:
+"""
+def calcParam(listLeft, listCenter, listRight): #This uses pseudo-inverse but thought not suitable(inavailable) for this
+    #worked on March 28th
+    #numpyにすべての取得データをまとめた．ただ最初からまとめてもよかったけど。
+    #ここのデータを最小二乗法なりMSEで処理できるように
+    print("data will be processed here")
 
-def outputData(listLeft, listCenter, listRight): #worked on March 28th
-    print("data will be output to csv file here ?")
-
-    print('listLeft::', listLeft)
-    print('listCenter:: ', listCenter)
-    print('listRight:: ', listRight)
-    npaLeft = np.array(listLeft)
-    npaCenter = np.array(listCenter)
-    npaRight = np.array(listRight)
-
-#    dataArray = np.array(listLeft)
-    dataArray = np.concatenate([npaLeft, npaCenter, npaRight])
+    # 統合
+    dataArray = np.concatenate([np.array(listLeft), np.array(listCenter), np.array(listRight)])
 
     print('----dataArray----')
     print(dataArray)
 
-def calcParameters():
-    print("parameters to convert pos data will be calculated here")
+    # Equation:     degrees = posData * positionData
+    # Equation:    param = p_inv(posData) * [degrees(=y)]
+    arr_degree = np.array
+    arr_posX = np.array
 
+    arr_degree, arr_posx = np.hsplit(dataArray,[1])
+    print('arr_degree: \n', arr_degree)
+    print('arr_posX: \n', arr_posX)
+
+    #Pseudo-Inverse
+    arr_pinvPosX = np.linalg.pinv(arr_posX)
+    #エラーでた->そもそもこれ1次元の行列じゃ？それのPINVなんて存在しない
+    #a=y/xの単純計算では？あれ，でもそもそも単純計算だと1つのDegreesに対する複数値の計算なんかできない
+    # pinverseじゃなくてMSE？
+     print('Pseudo-inverse of position x data: \n', arr_pinvPosX)
+
+    parameter = np.dot(arr_pinvPosX, arr_degree)
+    return parameter
+
+"""
+
+def calcParam(listLeft, listCenter, listRight):
+    print('Linear Regression for obtained position data to calculate degrees from them')
+    # merge each data
+    dataArray = np.concatenate([np.array(listLeft), np.array(listCenter), np.array(listRight)])
+    print('--print dataArray--')
+    print(dataArray)
+    arr_degree = np.array
+    arr_posX = np.array
+    arr_degree, arr_posX = np.hsplit(dataArray, [1])
+
+    #put sample data just for test
+    """ arr_posXは下で手入力したように二次元じゃないといけないぽい(fit()で使うため)．
+        model_lr.fit(x,y) のyもデータdegとpos合計のdataArrayじゃないといけない
+        実行時には，手入力arr_posXに合わせてデータは五つ分入力してあげる"""
+    arr_degree = [-25.0, -25.0, 0., 25.0, 25.0]
+    arr_posX = [[39.0, ], [41.0,], [60.0,], [82.0,], [81.0,]]
+
+    print('arr_degree: \n', arr_degree)
+    print('arr_posX: \n', arr_posX)
+
+    #calculate LinearRegression
+    model_lr = LinearRegression()
+    #fit: training (x,y) where x is target data to train, y is training data
+    #model_lr.fit(arr_posX, arr_degree)
+    model_lr.fit(arr_posX, dataArray)
+
+    plt.title("LinearRegression result")
+    plt.scatter(arr_degree, arr_posX, label='measured data')
+    plt.plot(arr_degree, arr_posX, 'o', color='k')
+    plt.plot(arr_degree, model_lr.predict(arr_posX), color='r', linestyle='solid')
+    plt.show()
+
+
+    parameters = 1.0
+    return parameters
+
+
+
+
+
+"""################ main#################"""
 
 
 if __name__ == "__main__":
-
 
     unitFrame = 50
     printSwitch = 1
@@ -105,9 +161,6 @@ if __name__ == "__main__":
     realtimereceive = RealTimeReceive()
     #stream_name = 'pupil_capture'
     stream_name = 'Pupil Primitive Data - Eye 0'
-
-
-
     streams = resolve_streams(wait_time=3.)
     print("-----")
     print(len(streams))
@@ -115,7 +168,6 @@ if __name__ == "__main__":
     inlet = StreamInlet(streams[0]) # そもそもStream[]にはIndex0ひとつしかないのでinlet_specific_streamがいらなかった
 
     ch_names = realtimereceive.pick_ch_names(inlet.info())
-
 
     inlet.open_stream
     time.sleep(.1)
@@ -128,7 +180,7 @@ if __name__ == "__main__":
     # やりたいこと：
     # 特定キーを押すとその後１秒間のPosXの平均を保存 ×3種類。中央，左右。
     # その値を使って角度に変換
-    # 変換した値をC++に送信したい
+    # 変換した値をC++のやつに送信したい
 
 
     print('-Started-')
@@ -256,6 +308,8 @@ if __name__ == "__main__":
         print('Average PosRight: ', sum(b)/len(b))
 
     if dataCheck == 0:
-        outputData(posLeftList, posCenterList, posRightList)
+        #calcParam(posLeftList, posCenterList, posRightList)
+        parameter = calcParam(posLeftList, posCenterList, posRightList)
+        print('Calculated Parameter: \n', parameter)
     else:
         print("Data not completed")
