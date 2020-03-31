@@ -157,7 +157,7 @@ if __name__ == "__main__":
     posRightList.clear()
 
     confThr = 0.0 # confidence threshold. 0.6?
-
+    print('set confidence threshold is: ', confThr)
     edgeDegree = 25.0 # the degree of left/right edge of the used display
 
     while True:
