@@ -48,8 +48,6 @@ class RealTimeReceive():
 
 
 class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
     def __init__(self):
         try:
             self.impl = _GetchUnix()
@@ -75,10 +73,8 @@ class _GetchUnix:
         return ch
 
 
-
-
 def calcParam(listLeft, listCenter, listRight):
-    print('Linear Regression for obtained position data to calculate degrees from them')
+    print('Calculating Linear Regression to obtain parameters that connects obtained position data and degrees')
     # merge each data
     dataArray = np.concatenate([np.array(listLeft), np.array(listCenter), np.array(listRight)])
     print('--print dataArray--')
