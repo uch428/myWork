@@ -3,8 +3,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
-
 from sklearn.linear_model import LinearRegression
+import csv
 
 class RealTimeReceive():
     def print_receiveRate(self, sw, uFrame, e_time, czero, cmore):
@@ -75,40 +75,7 @@ class _GetchUnix:
         return ch
 
 
-#def waitInput:
-"""
-def calcParam(listLeft, listCenter, listRight): #This uses pseudo-inverse but thought not suitable(inavailable) for this
-    #worked on March 28th
-    #numpyにすべての取得データをまとめた．ただ最初からまとめてもよかったけど。
-    #ここのデータを最小二乗法なりMSEで処理できるように
-    print("data will be processed here")
 
-    # 統合
-    dataArray = np.concatenate([np.array(listLeft), np.array(listCenter), np.array(listRight)])
-
-    print('----dataArray----')
-    print(dataArray)
-
-    # Equation:     degrees = posData * positionData
-    # Equation:    param = p_inv(posData) * [degrees(=y)]
-    arr_degree = np.array
-    arr_posX = np.array
-
-    arr_degree, arr_posx = np.hsplit(dataArray,[1])
-    print('arr_degree: \n', arr_degree)
-    print('arr_posX: \n', arr_posX)
-
-    #Pseudo-Inverse
-    arr_pinvPosX = np.linalg.pinv(arr_posX)
-    #エラーでた->そもそもこれ1次元の行列じゃ？それのPINVなんて存在しない
-    #a=y/xの単純計算では？あれ，でもそもそも単純計算だと1つのDegreesに対する複数値の計算なんかできない
-    # pinverseじゃなくてMSE？
-     print('Pseudo-inverse of position x data: \n', arr_pinvPosX)
-
-    parameter = np.dot(arr_pinvPosX, arr_degree)
-    return parameter
-
-"""
 
 def calcParam(listLeft, listCenter, listRight):
     print('Linear Regression for obtained position data to calculate degrees from them')
@@ -121,36 +88,35 @@ def calcParam(listLeft, listCenter, listRight):
     arr_degree, arr_posX = np.hsplit(dataArray, [1])
 
     #put sample data just for test
-    """ arr_posXは下で手入力したように二次元じゃないといけないぽい(fit()で使うため)．
-        model_lr.fit(x,y) のyもデータdegとpos合計のdataArrayじゃないといけない
-        実行時には，手入力arr_posXに合わせてデータは五つ分入力してあげる"""
-    arr_degree = [-25.0, -25.0, 0., 25.0, 25.0]
-    arr_posX = [[39.0, ], [41.0,], [60.0,], [82.0,], [81.0,]]
+    #arr_degree = np.array([-25.0, -25.0, 0., 25.0, 25.0])
+    #arr_posX = np.array([[39.0], [41.0], [60.0], [82.0], [81.0]])
+    # ([[-25.0],[],...])とするか，([-25.0, 0., ...])の後にreshape(-1,1)するか
+    arr_degree = arr_degree.reshape(-1,1)
 
     print('arr_degree: \n', arr_degree)
     print('arr_posX: \n', arr_posX)
 
-    #calculate LinearRegression
-    model_lr = LinearRegression()
-    #fit: training (x,y) where x is target data to train, y is training data
-    #model_lr.fit(arr_posX, arr_degree)
-    model_lr.fit(arr_posX, dataArray)
 
     plt.title("LinearRegression result")
-    plt.scatter(arr_degree, arr_posX, label='measured data')
-    plt.plot(arr_degree, arr_posX, 'o', color='k')
-    plt.plot(arr_degree, model_lr.predict(arr_posX), color='r', linestyle='solid')
+    plt.scatter(arr_degree, arr_posX)
+    #calculate LinearRegression
+    model_lr = LinearRegression()
+    model_lr.fit(arr_degree, arr_posX)
+    plt.plot(arr_degree, model_lr.predict(arr_degree), color='r', linestyle='solid')
     plt.show()
 
+    coefficient = model_lr.coef_[0]
+    intercept = model_lr.intercept_
 
-    parameters = 1.0
-    return parameters
-
-
-
+    writeCsv(coefficient[0], intercept[0])
 
 
-"""################ main#################"""
+def writeCsv(paramA, paramB):
+    print('coefficient: ', paramA)
+    print('intercept: ', paramB)
+    with open("/Users/yutauchimine/work/mywork/parameters.csv", 'w') as cali_result:
+        writeResult = csv.writer(cali_result)
+        writeResult.writerow([paramA, paramB])
 
 
 if __name__ == "__main__":
@@ -307,9 +273,9 @@ if __name__ == "__main__":
             b.append(i[1])
         print('Average PosRight: ', sum(b)/len(b))
 
+
     if dataCheck == 0:
-        #calcParam(posLeftList, posCenterList, posRightList)
-        parameter = calcParam(posLeftList, posCenterList, posRightList)
-        print('Calculated Parameter: \n', parameter)
+        calcParam(posLeftList, posCenterList, posRightList)
+        #print('Calculated Parameter: \n', parameters)
     else:
         print("Data not completed")
