@@ -5,6 +5,23 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 from sklearn.linear_model import LinearRegression
 import csv
+import pandas as pd
+import os
+
+#try:
+#readData = pd.read_csv('/Users/yutauchimine/work/mywork/parameters.csv', header=None)
+#arr_param = np.array(readData.values)
+
+arr_param = np.loadtxt('/Users/yutauchimine/work/mywork/parameters.csv',
+                  delimiter=",",    # ファイルの区切り文字
+                  skiprows=0,       # 先頭の何行を無視するか（指定した行数までは読み込まない）
+                  usecols=(0,1) # 読み込みたい列番号
+                 )
+
+print(arr_param)
+#except:
+    #print('problem with reading csv file occured')
+
 
 class RealTimeReceive():
     def print_receiveRate(self, sw, uFrame, e_time, czero, cmore):
@@ -49,6 +66,35 @@ class RealTimeReceive():
 
 
 
+
+
+# conver pupil position data into
+def convert(pupilPosX, pupilPosY):
+    paramA = arr_param[0]
+    paramB = arr_param[1]
+    # calculation below is only available for linear regression. Refer to calibration.py
+    """
+    y=ax+b
+    posX = paramA * degX  + paramB
+    """
+
+    degX = (pupilPosX-paramB)/paramA
+
+    degY = 0.
+    return degX, degY
+
+
+def sender(degX, degY):
+    #print('This function passes converted degree data to MLA program')
+    print('degX =  ', degX)
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
 
     unitFrame = 50
@@ -66,11 +112,41 @@ if __name__ == "__main__":
     ch_names = realtimereceive.pick_ch_names(inlet.info())
 
     inlet.open_stream
-    time.sleep(.1)
+#    time.sleep(.1)
     chunk, timestamps = inlet.pull_sample(timeout=3.)
     countdmore = 0
     countdzero = 0
-    frame = 0
     counter2 = 0
 
     confThr = 0.0 # confidence threshold. 0.6?
+    print('set confidence threshold is: ', confThr)
+
+    while True:
+        """
+        quit = input()
+        if(quit == 'q'):
+            print('out')
+            break
+        """
+        time.sleep(0.1)
+        d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
+       # print(d)
+       # time.sleep(0.5)
+    #    diameter = np.array(d)[-1, 0]
+    #    print('dia : ', np.array(d)[1])
+     #   print('dia: ', dia)
+        if(len(d) == 0):
+            countdzero += 1
+        else:
+            if len(d) > 1:
+                countdmore += 1
+
+
+
+            #diameter = np.array(d)[-1, -2] # とってきたデータの最後の部分(list[-1, x])を使う
+            pupilPosX = np.array(d)[-1, 1]
+            pupilPosY = np.array(d)[-1, 2]
+            print('PupilPosX: ', pupilPosX)
+
+            degX, degY = convert(pupilPosX, pupilPosY)
+            sender(degX, degY)
