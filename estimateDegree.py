@@ -64,6 +64,24 @@ class RealTimeReceive():
         self.StreamInlet.open_stream()
 
 
+class ZmqSend():
+    def __init__(self, conn_str):
+        self.conn_str = conn_str
+        self.diameter = [0]
+        self.angle = [0]
+        self.distance = [0]
+    def sendData(self, degX, degY):
+       # print('1')
+        ctx = zmq.Context()
+        sock = ctx.socket(zmq.REQ)
+        sock.connect(self.conn_str)
+       # print('2')
+        self.diameter[0] = dia
+        self.angle[0] = ang
+        self.distance[0] = dist
+        data = [ np.array(self.degX), np.array(self.degY)]
+        sock.send_multipart(data)
+     #   print('Sent : ', data)
 
 
 
@@ -116,7 +134,10 @@ if __name__ == "__main__":
     chunk, timestamps = inlet.pull_sample(timeout=3.)
     countdmore = 0
     countdzero = 0
-    counter2 = 0
+
+
+    str = "tcp://127.0.0.1:5553"
+    zmqSend = ZmqSend(str)
 
     confThr = 0.0 # confidence threshold. 0.6?
     print('set confidence threshold is: ', confThr)
@@ -149,4 +170,4 @@ if __name__ == "__main__":
             print('PupilPosX: ', pupilPosX)
 
             degX, degY = convert(pupilPosX, pupilPosY)
-            sender(degX, degY)
+            zmqSend.sendData(degX, degY)

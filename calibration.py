@@ -173,7 +173,7 @@ if __name__ == "__main__":
             print('break')
             break
 
-        time.sleep(0.1)
+        time.sleep(0.1) """これいる？"""
         d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
 
         if(len(d) == 0):
