@@ -7,10 +7,7 @@ from sklearn.linear_model import LinearRegression
 import csv
 import pandas as pd
 import os
-
-#try:
-#readData = pd.read_csv('/Users/yutauchimine/work/mywork/parameters.csv', header=None)
-#arr_param = np.array(readData.values)
+import zmq
 
 arr_param = np.loadtxt('/Users/yutauchimine/work/mywork/parameters.csv',
                   delimiter=",",    # ファイルの区切り文字
@@ -18,10 +15,7 @@ arr_param = np.loadtxt('/Users/yutauchimine/work/mywork/parameters.csv',
                   usecols=(0,1) # 読み込みたい列番号
                  )
 
-print(arr_param)
-#except:
-    #print('problem with reading csv file occured')
-
+print('import parameters: ', arr_param)
 
 class RealTimeReceive():
     def print_receiveRate(self, sw, uFrame, e_time, czero, cmore):
@@ -67,21 +61,18 @@ class RealTimeReceive():
 class ZmqSend():
     def __init__(self, conn_str):
         self.conn_str = conn_str
-        self.diameter = [0]
-        self.angle = [0]
+        self.degreeX = [0]
+        self.degreeY = [0]
         self.distance = [0]
     def sendData(self, degX, degY):
-       # print('1')
         ctx = zmq.Context()
         sock = ctx.socket(zmq.REQ)
         sock.connect(self.conn_str)
-       # print('2')
-        self.diameter[0] = dia
-        self.angle[0] = ang
-        self.distance[0] = dist
-        data = [ np.array(self.degX), np.array(self.degY)]
+        self.degreeX[0] = degX
+        self.degreeY[0] = degY
+        data = [ np.array(self.degreeX), np.array(self.degreeY)]
         sock.send_multipart(data)
-     #   print('Sent : ', data)
+        print('Sent : ', data)
 
 
 
@@ -139,7 +130,7 @@ if __name__ == "__main__":
     str = "tcp://127.0.0.1:5553"
     zmqSend = ZmqSend(str)
 
-    confThr = 0.0 # confidence threshold. 0.6?
+    confThr = 0.3 # confidence threshold. 0.6?
     print('set confidence threshold is: ', confThr)
 
     while True:

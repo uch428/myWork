@@ -156,7 +156,7 @@ if __name__ == "__main__":
     posCenterList.clear()
     posRightList.clear()
 
-    confThr = 0.0 # confidence threshold. 0.6?
+    confThr = 0.3 # confidence threshold. 0.6?
     print('set confidence threshold is: ', confThr)
     edgeDegree = 25.0 # the degree of left/right edge of the used display
 
@@ -173,7 +173,7 @@ if __name__ == "__main__":
             print('break')
             break
 
-        time.sleep(0.1) """これいる？"""
+        time.sleep(0.1) #"""これいる？"""
         d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
 
         if(len(d) == 0):
