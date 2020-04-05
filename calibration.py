@@ -115,6 +115,7 @@ def writeCsv(paramA, paramB):
         writeResult.writerow([paramA, paramB])
 
 
+
 if __name__ == "__main__":
 
     unitFrame = 50

@@ -17,6 +17,9 @@ arr_param = np.loadtxt('/Users/yutauchimine/work/mywork/parameters.csv',
 
 print('import parameters: ', arr_param)
 
+
+
+
 class RealTimeReceive():
     def print_receiveRate(self, sw, uFrame, e_time, czero, cmore):
         if(sw):
@@ -72,7 +75,7 @@ class ZmqSend():
         self.degreeY[0] = degY
         data = [ np.array(self.degreeX), np.array(self.degreeY)]
         sock.send_multipart(data)
-        print('Sent : ', data)
+
 
 
 
@@ -90,15 +93,11 @@ def convert(pupilPosX, pupilPosY):
     degX = (pupilPosX-paramB)/paramA
 
     degY = 0.
+    print('degreeX: ', degX)
     return degX, degY
 
 
-def sender(degX, degY):
-    #print('This function passes converted degree data to MLA program')
-    print('degX =  ', degX)
-
-
-
+#def record(degX, degY):
 
 
 
@@ -133,32 +132,39 @@ if __name__ == "__main__":
     confThr = 0.3 # confidence threshold. 0.6?
     print('set confidence threshold is: ', confThr)
 
-    while True:
-        """
-        quit = input()
-        if(quit == 'q'):
-            print('out')
-            break
-        """
-        time.sleep(0.1)
-        d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
-       # print(d)
-       # time.sleep(0.5)
-    #    diameter = np.array(d)[-1, 0]
-    #    print('dia : ', np.array(d)[1])
-     #   print('dia: ', dia)
-        if(len(d) == 0):
-            countdzero += 1
-        else:
-            if len(d) > 1:
-                countdmore += 1
+    #to record measured/calculated degree data
+    with open("/Users/yutauchimine/work/mywork/recordDegree.csv",'w') as record:
+        writeRecord = csv.writer(record)
 
+        while True:
+            """
+            quit = input()
+            if(quit == 'q'):
+                print('out')
+                break
+            """
+            time.sleep(0.1)
+            d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
+           # print(d)
+           # time.sleep(0.5)
+        #    diameter = np.array(d)[-1, 0]
+        #    print('dia : ', np.array(d)[1])
+         #   print('dia: ', dia)
+            if(len(d) == 0):
+                countdzero += 1
+            else:
+                if len(d) > 1:
+                    countdmore += 1
 
+                #diameter = np.array(d)[-1, -2] # とってきたデータの最後の部分(list[-1, x])を使う
+                pupilPosX = np.array(d)[-1, 1]
+                pupilPosY = np.array(d)[-1, 2]
+                print('PupilPosX: ', pupilPosX)
 
-            #diameter = np.array(d)[-1, -2] # とってきたデータの最後の部分(list[-1, x])を使う
-            pupilPosX = np.array(d)[-1, 1]
-            pupilPosY = np.array(d)[-1, 2]
-            print('PupilPosX: ', pupilPosX)
+                degX, degY = convert(pupilPosX, pupilPosY)
 
-            degX, degY = convert(pupilPosX, pupilPosY)
-            zmqSend.sendData(degX, degY)
+                writeRecord.writerow([degX, degY])
+                record.flush()
+
+                #zmqSend.sendData(degX, degY)
+                #record(degX, degY)
