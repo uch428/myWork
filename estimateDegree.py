@@ -10,15 +10,11 @@ import os
 import zmq
 
 arr_param = np.loadtxt('/Users/yutauchimine/work/mywork/parameters.csv',
-                  delimiter=",",    # ファイルの区切り文字
-                  skiprows=0,       # 先頭の何行を無視するか（指定した行数までは読み込まない）
-                  usecols=(0,1) # 読み込みたい列番号
-                 )
-
+                  delimiter=",",
+                  skiprows=0,
+                  usecols=(0,1)
+                  )
 print('import parameters: ', arr_param)
-
-
-
 
 class RealTimeReceive():
     def print_receiveRate(self, sw, uFrame, e_time, czero, cmore):
@@ -32,15 +28,12 @@ class RealTimeReceive():
         for stream in streams:      #stream変数を宣言してにstreamsの要素を順に入れる
             inlet = StreamInlet(stream)   #streamのStreamInletをしてinletに入れる
             stream_names.append(inlet.info().name()) # inletのname()要素をstream_names配列に入れる
-
         print(':   ', stream_names)
         stream_names.append('Pupil Primitive Data - Eye 0')
         for aiueo in (stream_names):
             print('Data : ', aiueo)
         idx = stream_names.index(stream_name)   # stream_nameと同じstream_namesの要素があるときのインデックスを代入
-
         streams.append('Pupil Primitive Data - Eye 0')
-
         inlet = StreamInlet(streams[idx])
         print(type(inlet))
         return inlet
@@ -77,10 +70,7 @@ class ZmqSend():
         sock.send_multipart(data)
 
 
-
-
-
-# conver pupil position data into
+# conver pupil position data into angle
 def convert(pupilPosX, pupilPosY):
     paramA = arr_param[0]
     paramB = arr_param[1]
@@ -89,19 +79,10 @@ def convert(pupilPosX, pupilPosY):
     y=ax+b
     posX = paramA * degX  + paramB
     """
-
     degX = (pupilPosX-paramB)/paramA
-
-    degY = 0.
+    degY = 0. # we do not use Y-axis degree currently
     print('degreeX: ', degX)
     return degX, degY
-
-
-#def record(degX, degY):
-
-
-
-
 
 if __name__ == "__main__":
 
@@ -114,57 +95,35 @@ if __name__ == "__main__":
     streams = resolve_streams(wait_time=3.)
     print("-----")
     print(len(streams))
-
     inlet = StreamInlet(streams[0]) # そもそもStream[]にはIndex0ひとつしかないのでinlet_specific_streamがいらなかった
-
     ch_names = realtimereceive.pick_ch_names(inlet.info())
-
     inlet.open_stream
-#    time.sleep(.1)
     chunk, timestamps = inlet.pull_sample(timeout=3.)
     countdmore = 0
     countdzero = 0
-
-
+    #to send data to C++ program
     str = "tcp://127.0.0.1:5553"
     zmqSend = ZmqSend(str)
 
-    confThr = 0.3 # confidence threshold. 0.6?
+    confThr = 0.3 # 0.6 was too high to obtain sufficient amount of data
     print('set confidence threshold is: ', confThr)
-
     #to record measured/calculated degree data
     with open("/Users/yutauchimine/work/mywork/recordDegree.csv",'w') as record:
         writeRecord = csv.writer(record)
-
         while True:
-            """
-            quit = input()
-            if(quit == 'q'):
-                print('out')
-                break
-            """
             time.sleep(0.1)
             d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
-           # print(d)
-           # time.sleep(0.5)
-        #    diameter = np.array(d)[-1, 0]
-        #    print('dia : ', np.array(d)[1])
-         #   print('dia: ', dia)
             if(len(d) == 0):
                 countdzero += 1
             else:
                 if len(d) > 1:
                     countdmore += 1
-
-                #diameter = np.array(d)[-1, -2] # とってきたデータの最後の部分(list[-1, x])を使う
+                #diameter = np.array(d)[-1, -2]
                 pupilPosX = np.array(d)[-1, 1]
                 pupilPosY = np.array(d)[-1, 2]
                 print('PupilPosX: ', pupilPosX)
-
                 degX, degY = convert(pupilPosX, pupilPosY)
-
-                writeRecord.writerow([degX, degY])
-                record.flush()
-
-                #zmqSend.sendData(degX, degY)
-                #record(degX, degY)
+                zmqSend.sendData(degX, degY)
+                # if you want to save obtained data on csv
+                #writeRecord.writerow([degX, degY])
+                #record.flush() # .flush required to write on csv in while loop
