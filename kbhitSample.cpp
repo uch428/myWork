@@ -43,3 +43,5 @@ int main(void)
 
     return 0;
 }
+
+// https://hotnews8.net/programming/tricky-code/c-code03
