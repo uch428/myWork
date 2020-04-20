@@ -12,6 +12,9 @@
 #include <fcntl.h>
 using namespace std;
 
+// compiling requires -lzmq option e.g.
+// $ g++ -o readMemory readMemory.cpp -lzmq
+
 int kbhit(void)
 {
     struct termios oldt, newt;
@@ -57,30 +60,14 @@ int main(int argc, char*argv[])
 
     // 共有メモリを読み取る
     int flag = 0;
-
-
     char c;
     double angle;
     printf("hit any key to end the program\n");
-    /*
-    while(flag == 0){
-        cin.get(c);
-        if(c == 'q') flag = 1;
-        else
-        {
-          angle = *shared_memory;
-          printf("%f\n", *shared_memory);
-        }
-    }
-    */
-
-
 
     while(!kbhit())
     {
         angle = *shared_memory;
         printf("%f\n", *shared_memory);
-
     }
 
     // 共有メモリをプロセスから切り離す

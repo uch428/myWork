@@ -15,6 +15,7 @@
 using namespace std;
 
 
+// $ g++ -o writeM writeM.cpp -lzmq
 int kbhit(void)
 {
     struct termios oldt, newt;
@@ -46,7 +47,7 @@ int main(int argc, char*argv[])
 {
     // 空のファイル作成
     FILE *fp;
-    const string file_path = "./key.dat";
+    const string file_path = "/Users/yutauchimine/work/mywork/key.dat";
     fp = fopen(file_path.c_str(), "w");
     fclose(fp);
 
@@ -73,7 +74,6 @@ int main(int argc, char*argv[])
 
     //char* const shared_memory = reinterpret_cast<char*>(shmat(seg_id, 0, 0));
     double* const shared_memory = reinterpret_cast<double*>(shmat(seg_id, 0, 0));
-    // 共有メモリに書き込む
     /*
     string s;
     int flag = 0;
@@ -117,6 +117,7 @@ int main(int argc, char*argv[])
                   case 0:
                     pupilAngleX = *(double*)rcv_msg.data();
                     printf("degX : %f \n", pupilAngleX);
+                    // write on shared_memory
                     *shared_memory = pupilAngleX;
                     printf("address: %d,  *shared_memory: %f \n", shared_memory, *shared_memory);
                   //  sprintf(shared_memory, s.c_str());

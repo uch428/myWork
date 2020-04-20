@@ -111,6 +111,7 @@ if __name__ == "__main__":
     with open("/Users/yutauchimine/work/mywork/recordDegree.csv",'w') as record:
         writeRecord = csv.writer(record)
         while True:
+            print("a\n")
             time.sleep(0.1)
             d, _ = inlet.pull_chunk(max_samples=64)    # バッファにあるデータを全部取る
             if(len(d) == 0):
@@ -118,12 +119,18 @@ if __name__ == "__main__":
             else:
                 if len(d) > 1:
                     countdmore += 1
+                print("b\n")
                 #diameter = np.array(d)[-1, -2]
                 pupilPosX = np.array(d)[-1, 1]
                 pupilPosY = np.array(d)[-1, 2]
+                #pupilPosX = 0.5 # for test
+                #pupilPosY = 0.5
+
                 print('PupilPosX: ', pupilPosX)
+
                 degX, degY = convert(pupilPosX, pupilPosY)
                 zmqSend.sendData(degX, degY)
+                print("c\n")
                 # if you want to save obtained data on csv
                 #writeRecord.writerow([degX, degY])
                 #record.flush() # .flush required to write on csv in while loop

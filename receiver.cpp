@@ -11,7 +11,7 @@ int main(int argc, char*argv[])
   int cnt = 0;
   while(1)
   {
-    
+
             printf("...\n");
             //Setting ZMQ
             zmq::context_t context(1);
